@@ -3,16 +3,21 @@ FROM aswinnarayanan/mytardis-run
 
 USER root
 EXPOSE 8000
-EXPOSE 5432
+#EXPOSE 5432
 WORKDIR /home/webapp
 
 ADD settings.py ./tardis/
 ADD run_mytardis.sh .
+#ADD api.py ./tardis/tardis_portal/
+ADD imagetrove ./tardis/apps/imagetrove
+
+#USER webapp
+# django-longerusernameandemail
+
+#RUN . /appenv/bin/activate; python mytardis.py makemigrations 
 
 
 
-USER webapp
-RUN . /appenv/bin/activate; pip install psycopg2 django-longerusernameandemail south
 
 CMD bash run_mytardis.sh
 

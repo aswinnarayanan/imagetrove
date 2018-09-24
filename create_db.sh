@@ -19,7 +19,7 @@ service postgresql restart
 createuser --username=postgres --no-superuser --pwprompt admin
 createdb --username=postgres --owner=admin --encoding=UNICODE tardis_db
 
-pi install psycopg2
-pip install south
-pip install django-longerusernameandemail
+#pi install psycopg2
+#pip install south
+#pip install django-longerusernameandemail
 

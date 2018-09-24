@@ -1,6 +1,8 @@
 #!/bin/bash
 
 . /appenv/bin/activate
+#python mytardis.py migrate auth --fake
+python mytardis.py makemigrations 
 python mytardis.py migrate
 python mytardis.py createcachetable default_cache
 python mytardis.py createcachetable celery_lock_cache
