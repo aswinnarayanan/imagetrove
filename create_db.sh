@@ -16,10 +16,15 @@ EOL
 
 service postgresql restart
 
+<<<<<<< HEAD
 createuser --username=postgres --no-superuser --pwprompt admin
 createdb --username=postgres --owner=admin --encoding=UNICODE tardis_db
 
 #pi install psycopg2
 #pip install south
 #pip install django-longerusernameandemail
+=======
+createuser --username=postgres --no-superuser --pwprompt cai_admin
+createdb --username=postgres --owner=cai_admin --encoding=UNICODE cai_tardis_db
+>>>>>>> ccf266451ba7051d54517a74f1898209a74e8fac
 
