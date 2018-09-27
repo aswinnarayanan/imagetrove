@@ -1,4 +1,0 @@
-[submodule "mytardis"]
-	path = mytardis
-	url = https://github.com/mytardis/mytardis.git
-	branch = v4.0.0-RC8
