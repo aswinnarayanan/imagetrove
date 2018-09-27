@@ -1,12 +1,10 @@
-FROM aswinnarayanan/mytardis-run
+FROM imagetrove/mytardis-run
 # FROM mytardis/mytardis-run:develop
 
 USER root
 EXPOSE 8000
 #EXPOSE 5432
 WORKDIR /home/webapp
-
-ADD . /path/inside/docker/container
 
 ADD settings.py ./tardis/
 ADD run_mytardis.sh .

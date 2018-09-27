@@ -1,5 +1,0 @@
-FROM mytardis/mytardis-run:latest
-
-USER root
-RUN . /appenv/bin/activate; pip install psycopg2-binary
-
