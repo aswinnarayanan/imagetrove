@@ -1,0 +1,42 @@
+#FROM mytardis/mytardis-base
+
+#WORKDIR /home/webapp
+#USER webapp
+
+#RUN . /appenv/bin/activate; pip install -U -r requirements.txt
+
+
+FROM ubuntu:18.04
+COPY mytardis /home/webapp/
+
+WORKDIR /home/webapp
+USER root
+
+RUN apt-get update && apt-get install \
+    -qy \
+    -o APT::Install-Recommends=false \
+    -o APT::Install-Suggests=false \
+    curl \
+    git \
+    gnupg \
+    libldap2-dev \
+    libsasl2-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    python-pip \
+    python-virtualenv \
+    virtualenvwrapper \
+    libmagic-dev \
+    libmagickwand-dev \
+    libmysqlclient20 \
+    && apt-get clean
+
+RUN bash install-ubuntu-requirements.sh
+
+RUN source /etc/bash_completion.d/virtualenvwrapper && \
+    mkvirtualenv mytardis && \
+    pip install -U pip
+
+RUN pip install -U -r requirements.txt
+RUN npm install --production
