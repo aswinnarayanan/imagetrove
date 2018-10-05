@@ -1,42 +1,36 @@
-#FROM mytardis/mytardis-base
-
-#WORKDIR /home/webapp
-#USER webapp
-
-#RUN . /appenv/bin/activate; pip install -U -r requirements.txt
-
-
 FROM ubuntu:18.04
+
+RUN groupadd -r webapp && useradd -r -g webapp webapp
+
 COPY mytardis /home/webapp/
 
+RUN chown -R webapp:webapp /home/webapp
 WORKDIR /home/webapp
-USER root
+
+RUN mkdir /appenv
+RUN chown -R webapp:webapp /appenv
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90assumeyes
 
 RUN apt-get update && apt-get install \
     -qy \
     -o APT::Install-Recommends=false \
     -o APT::Install-Suggests=false \
     curl \
-    git \
-    gnupg \
-    libldap2-dev \
-    libsasl2-dev \
-    libssl-dev \
-    libxml2-dev \
-    libxslt1-dev \
-    python-pip \
-    python-virtualenv \
-    virtualenvwrapper \
-    libmagic-dev \
-    libmagickwand-dev \
-    libmysqlclient20 \
+    sudo \
+    && apt-get upgrade \
+    && apt-get autoremove \
     && apt-get clean
 
 RUN bash install-ubuntu-requirements.sh
 
-RUN source /etc/bash_completion.d/virtualenvwrapper && \
-    mkvirtualenv mytardis && \
-    pip install -U pip
+USER webapp
+RUN virtualenv --system-site-packages /appenv
 
-RUN pip install -U -r requirements.txt
+RUN . /appenv/bin/activate; pip install -U pip
+RUN . /appenv/bin/activate; pip install -r requirements.txt
+RUN . /appenv/bin/activate; pip install psycopg2-binary
+
 RUN npm install --production
+

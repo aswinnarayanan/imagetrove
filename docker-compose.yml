@@ -1,12 +1,18 @@
 version: "2"
 services:
-  mytardis-base:
-    build:
-      context: mytardis
-      dockerfile: Dockerfile-base
-    image: mytardis/mytardis-base
+  # mytardis-base:
+    # build:
+      # context: mytardis
+      # dockerfile: Dockerfile-base
+    # image: mytardis/mytardis-base
   mytardis:
     build:
       context: .
       dockerfile: Dockerfile-mytardis
     image: mytardis/mytardis
+  imagetrove:
+    build:
+      context: .
+      dockerfile: Dockerfile-imagetrove
+    network_mode: "host"
+    image: imagetrove/imagetrove
