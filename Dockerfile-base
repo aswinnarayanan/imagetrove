@@ -1,0 +1,44 @@
+FROM ubuntu:18.04
+
+# Installing basic dependancies
+ENV DEBIAN_FRONTEND noninteractive
+RUN echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90assumeyes
+RUN apt-get update && apt-get install \
+    -qy \
+    -o APT::Install-Recommends=false \
+    -o APT::Install-Suggests=false \
+    curl \
+    sudo
+
+# Adding mytardis src
+COPY mytardis /home/webapp/
+RUN mkdir /appenv
+
+# Making python and webapp directories
+RUN groupadd -r webapp && useradd -r -g webapp webapp
+RUN chown -R webapp:webapp /appenv /home/webapp
+WORKDIR /home/webapp
+
+
+# Installing ubuntu requirements
+RUN apt-get update && apt-get install \
+    -qy \
+    -o APT::Install-Recommends=false \
+    -o APT::Install-Suggests=false \
+    memcached \
+    python-memcache
+RUN bash install-ubuntu-requirements.sh
+
+# Switch to webapp user
+USER webapp
+
+# Installing python virtualenv
+RUN virtualenv --system-site-packages /appenv
+RUN . /appenv/bin/activate; pip install -U pip
+RUN . /appenv/bin/activate; pip install psycopg2-binary
+
+# Installing python dependancies
+RUN . /appenv/bin/activate; pip install -r requirements.txt
+
+# Installing javascript dependancies
+RUN npm install --production

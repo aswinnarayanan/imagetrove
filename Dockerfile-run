@@ -1,25 +1,21 @@
-FROM mytardis/mytardis
+FROM imagetrove/mytardis-base
 
 USER webapp
 EXPOSE 8000
 WORKDIR /home/webapp
 
+
+
 ADD --chown=webapp:webapp settings.py ./tardis/
-# ADD --chown=webapp:webapp run-mytardis.sh .
 
-
-
-
-
-
-
-# RUN . /appenv/bin/activate; python mytardis.py makemigrations
-# RUN . /appenv/bin/activate; python mytardis.py migrate
+# ADD --chown=webapp:webapp entrypoint.sh ./
+# RUN chmod +x ./entrypoint.sh
 
 # USER webapp
 
 #RUN . /appenv/bin/activate; python mytardis.py makemigrations
-# CMD . /appenv/bin/activate; gunicorn -c gunicorn_settings.py --bind 0.0.0.0:8000 wsgi:application
+
+CMD . /appenv/bin/activate; gunicorn -c gunicorn_settings.py --bind 0.0.0.0:8000 wsgi:application
 
 
 # CMD bash run-mytardis.sh
