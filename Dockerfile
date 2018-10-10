@@ -12,38 +12,40 @@ RUN apt-get update && apt-get install \
     memcached \
     python-memcache
 
-# Adding mytardis src
-COPY mytardis /home/webapp/
-
 # Making python and webapp directories
 RUN groupadd -r webapp && useradd -r -g webapp webapp
+RUN mkdir -p /home/webapp
 RUN chown -R webapp:webapp /home/webapp
-WORKDIR /home/webapp
+
+# Adding mytardis src
+COPY --chown=webapp:webapp mytardis /home/webapp/code
+WORKDIR /home/webapp/code
 
 # Installing ubuntu requirements
 RUN bash install-ubuntu-requirements.sh
 
-# Switch to webapp user
-
-# Installing python virtualenv
-RUN pip install -U pip
-RUN pip install psycopg2-binary
-
-# Installing python dependancies
-RUN pip install -r requirements.txt
-
 USER webapp
+
+# # Installing python virtualenv
+RUN virtualenv --system-site-packages /home/webapp/appenv
+
+# # Installing python dependancies
+RUN bash -c "source ~/appenv/bin/activate; pip install -U pip"
+RUN bash -c "source ~/appenv/bin/activate; pip install psycopg2-binary"
+RUN bash -c "source ~/appenv/bin/activate; pip install -r requirements.txt"
 
 # Installing javascript dependancies
 RUN npm install --production
 
-USER root
-RUN mkdir -p /home/logs
-RUN chown -R webapp:webapp /home/logs
-USER webapp
+RUN mkdir -p /home/webapp/logs
+RUN chown -R webapp:webapp /home/webapp/logs
 
 ADD --chown=webapp:webapp settings.py ./tardis/
 
 EXPOSE 8000
 ADD --chown=webapp:webapp run-mytardis.sh ./
+
+# USER webapp
+# CMD bash service gunicorn restart
+
 CMD /bin/bash run-mytardis.sh

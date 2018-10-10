@@ -6,3 +6,7 @@ services:
       dockerfile: Dockerfile
     network_mode: "host"
     image: imagetrove/mytardis
+    volumes:
+    - /mnt/dev.imaging.org.au/store:/home/webapp/store
+    - /mnt/dev.imaging.org.au/logs:/home/webapp/logs
+    - /mnt/dev.imaging.org.au/static:/home/webapp/static
