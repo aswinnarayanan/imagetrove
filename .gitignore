@@ -1,1 +1,3 @@
 settings.py
+*.pub
+authorized_keys

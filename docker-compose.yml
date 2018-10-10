@@ -7,6 +7,16 @@ services:
     network_mode: "host"
     image: imagetrove/mytardis
     volumes:
-    - /mnt/dev.imaging.org.au/store:/home/webapp/store
+    - /mnt/dev.imaging.org.au/store:/store
     - /mnt/dev.imaging.org.au/logs:/home/webapp/logs
     - /mnt/dev.imaging.org.au/static:/home/webapp/static
+  staging:
+    build:
+      context: .
+      dockerfile: Dockerfile-staging
+    ports:
+      - "0.0.0.0:2222:22/tcp"
+    image: imagetrove/staging
+    volumes:
+    - /mnt/dev.imaging.org.au/store:/store
+    
