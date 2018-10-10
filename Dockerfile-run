@@ -4,8 +4,6 @@ USER webapp
 EXPOSE 8000
 WORKDIR /home/webapp
 
-
-
 ADD --chown=webapp:webapp settings.py ./tardis/
 
 # ADD --chown=webapp:webapp entrypoint.sh ./
@@ -15,7 +13,10 @@ ADD --chown=webapp:webapp settings.py ./tardis/
 
 #RUN . /appenv/bin/activate; python mytardis.py makemigrations
 
-CMD . /appenv/bin/activate; gunicorn -c gunicorn_settings.py --bind 0.0.0.0:8000 wsgi:application
+CMD /bin/bash run-mytardis.sh
+
+
+# CMD gunicorn -c gunicorn_settings.py --bind 0.0.0.0:8000 wsgi:application
 
 
 # CMD bash run-mytardis.sh

@@ -1,19 +1,8 @@
 version: "3"
 services:
-  mytardis-base:
+  mytardis:
     build:
       context: .
-      dockerfile: Dockerfile-base
-    image: imagetrove/mytardis-base
-  mytardis-run:
-    build:
-      context: .
-      dockerfile: Dockerfile-run
+      dockerfile: Dockerfile
     network_mode: "host"
-    image: imagetrove/mytardis-run
-
-    # depends_on:
-      # - migration
-  # migration:
-    # image: imagetrove/mytardis-run
-    # command: bash -c "source /appenv/bin/activate; python mytardis.py migrate"
+    image: imagetrove/mytardis
