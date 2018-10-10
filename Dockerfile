@@ -43,9 +43,9 @@ RUN chown -R webapp:webapp /home/webapp/logs
 ADD --chown=webapp:webapp settings.py ./tardis/
 
 EXPOSE 8000
-ADD --chown=webapp:webapp run-mytardis.sh ./
+ADD --chown=webapp:webapp run.sh ./
 
 # USER webapp
 # CMD bash service gunicorn restart
 
-CMD /bin/bash run-mytardis.sh
+CMD /bin/bash run.sh
