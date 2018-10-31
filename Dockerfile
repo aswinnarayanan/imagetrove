@@ -8,9 +8,7 @@ RUN apt-get update && apt-get install \
     -o APT::Install-Recommends=false \
     -o APT::Install-Suggests=false \
     curl \
-    sudo \
-    memcached \
-    python-memcache
+    sudo
 
 # Making python and webapp directories
 RUN groupadd -r webapp && useradd -r -g webapp webapp
