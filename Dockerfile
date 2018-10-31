@@ -40,9 +40,4 @@ RUN mkdir -p /home/webapp/logs
 RUN chown -R webapp:webapp /home/webapp/logs
 
 ADD --chown=webapp:webapp run.sh ./
-
-# CMD tail -f /dev/null
-# CMD bash -c "source ~/appenv/bin/activate; python mytardis.py runserver 0.0.0.0:8001"
-
-# ADD --chown=webapp:webapp settings.py ./tardis/
 CMD /bin/bash run.sh
