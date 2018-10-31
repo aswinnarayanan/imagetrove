@@ -15,5 +15,4 @@ RUN chown -R staging:staging /home/staging
 COPY --chown=staging:staging authorized_keys /home/staging/.ssh
 RUN chmod -R 500 /home/staging/.ssh
 
-EXPOSE 22
 CMD /etc/init.d/ssh start && tail -f /dev/null
