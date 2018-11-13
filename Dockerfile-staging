@@ -7,7 +7,9 @@ RUN apt-get update && apt-get install \
     -qy \
     -o APT::Install-Recommends=false \
     -o APT::Install-Suggests=false \
-    openssh-server
+    openssh-server \
+    curl \
+    ca-certificates
 
 RUN groupadd -r staging && useradd -r -g staging staging
 RUN mkdir -p /home/staging/.ssh
