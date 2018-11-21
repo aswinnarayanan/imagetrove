@@ -2,6 +2,10 @@
 
 source ~/appenv/bin/activate
 
+python mytardis.py createcachetable default_cache
+python mytardis.py createcachetable celery_lock_cache
+# source ~/appenv/bin/activate; python mytardis.py collectstatic
+# python mytardis.py rebuild_index
 python mytardis.py makemigrations --noinput
 python mytardis.py migrate --noinput
 

@@ -32,6 +32,8 @@ RUN bash -c "source ~/appenv/bin/activate; pip install -U pip"
 RUN bash -c "source ~/appenv/bin/activate; pip install psycopg2-binary"
 RUN bash -c "source ~/appenv/bin/activate; pip install -r requirements.txt"
 RUN bash -c "source ~/appenv/bin/activate; pip install django-redis"
+# TEMP Fix redis related bug
+RUN bash -c "source ~/appenv/bin/activate; pip install --upgrade --force-reinstall redis==2.10.6"
 
 # Installing javascript dependancies
 RUN npm install --production
