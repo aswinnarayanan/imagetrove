@@ -4,4 +4,4 @@ authorized_keys
 static/*
 store/*
 logs/*
-docker-compose.yml
+docker-compose*
