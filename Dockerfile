@@ -42,6 +42,9 @@ RUN mkdir -p ./tardis/apps/social_auth/
 COPY --chown=webapp:webapp mytardis/tardis/apps/social_auth/requirements.txt ./tardis/apps/social_auth/requirements.txt
 RUN bash -c "source ~/appenv/bin/activate; pip install --no-cache-dir -r tardis/apps/social_auth/requirements.txt"
 
+RUN bash -c "source ~/appenv/bin/activate; pip install --no-cache-dir redis==2.10.6"
+RUN bash -c "source ~/appenv/bin/activate; pip install --no-cache-dir django-redis"
+RUN bash -c "source ~/appenv/bin/activate; pip install --no-cache-dir celery_haystack"
 
 # Adding mytardis src
 COPY --chown=webapp:webapp mytardis /home/webapp/code
