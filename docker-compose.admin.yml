@@ -1,0 +1,32 @@
+version: "2"
+services:
+
+  migrate:
+    extends:
+      file: docker-compose.yml
+      service: mytardis
+    command: /bin/bash -c "source ~/appenv/bin/activate; python mytardis.py migrate --noinput"
+
+  createcachetable:
+    extends:
+      file: docker-compose.yml
+      service: mytardis
+    command: /bin/bash -c "source ~/appenv/bin/activate; python mytardis.py createcachetable default_cache; python mytardis.py createcachetable celery_lock_cache"
+
+  collectstatic:
+    extends:
+      file: docker-compose.yml
+      service: mytardis
+    command: /bin/bash -c "source ~/appenv/bin/activate; python mytardis.py collectstatic --no-input"
+
+  createsuperuser:
+    extends:
+      file: docker-compose.yml
+      service: mytardis
+    command: /bin/bash -c "source ~/appenv/bin/activate; python mytardis.py createsuperuser"
+
+  rebuild_index:
+    extends:
+      file: docker-compose.yml
+      service: mytardis
+    command: /bin/bash -c "source ~/appenv/bin/activate; python mytardis.py rebuild_index"

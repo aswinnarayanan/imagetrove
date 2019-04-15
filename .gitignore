@@ -4,4 +4,4 @@ authorized_keys
 static/*
 store/*
 logs/*
-docker-compose*
+docker-compose.override.yml
