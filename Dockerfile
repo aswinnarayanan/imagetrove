@@ -45,6 +45,7 @@ RUN bash -c "source ~/appenv/bin/activate; pip install --no-cache-dir -r tardis/
 RUN bash -c "source ~/appenv/bin/activate; pip install --no-cache-dir redis==2.10.6"
 RUN bash -c "source ~/appenv/bin/activate; pip install --no-cache-dir django-redis"
 RUN bash -c "source ~/appenv/bin/activate; pip install --no-cache-dir celery_haystack"
+RUN bash -c "source ~/appenv/bin/activate; pip install --no-cache-dir pydicom"
 
 # Adding mytardis src
 COPY --chown=webapp:webapp mytardis /home/webapp/code
