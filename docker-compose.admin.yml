@@ -30,3 +30,17 @@ services:
       file: docker-compose.yml
       service: mytardis
     command: /bin/bash -c "source ~/appenv/bin/activate; python mytardis.py rebuild_index"
+
+  shell_plus:
+    extends:
+      file: docker-compose.yml
+      service: mytardis
+    volumes:
+    - ./shell_run.py:/home/webapp/shell_run.py
+    command: /bin/bash -c "source ~/appenv/bin/activate; python mytardis.py shell_plus"
+
+  bash:
+    extends:
+      file: docker-compose.yml
+      service: mytardis
+    command: /bin/bash -c "source ~/appenv/bin/activate; bash"
