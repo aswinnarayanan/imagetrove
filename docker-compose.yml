@@ -25,3 +25,12 @@ services:
 
   staging:
     image: imagetrove/staging:latest
+
+
+# source ~/env/bin/activate
+# python mytardis.py migrate --noinput
+# python mytardis.py createcachetable default_cache; python mytardis.py createcachetable celery_lock_cache
+# python mytardis.py collectstatic --no-input
+# python mytardis.py createsuperuser
+# python mytardis.py rebuild_index
+# python mytardis.py shell_plus
