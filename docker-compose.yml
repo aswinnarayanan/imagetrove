@@ -7,20 +7,31 @@ x-project-image:
 services:
   redis:
     image: redis
+    depends_on:
+      - rabbit
 
   rabbit:
     image: rabbitmq:3-management
 
   mytardis:
     image: *project-image
+    links:
+      - rabbit
+    depends_on:
+      - rabbit
+      - redis
     command: bash -c "source ~/env/bin/activate; gunicorn -c gunicorn_settings.py -b unix:/tmp/gnicorn.socket -b 0.0.0.0:8000 --log-syslog wsgi:application"
 
   celery:
     image: *project-image
+    depends_on:
+      - rabbit
     command: bash -c 'sleep 20; source ~/env/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery worker -A tardis.celery.tardis_app -Q default -n default@%h'
 
   beat:
     image: *project-image
+    depends_on:
+      - rabbit
     command: bash -c 'sleep 20; source ~/env/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery beat -A tardis.celery.tardis_app --loglevel DEBUG'
 
   staging:
