@@ -1,6 +1,10 @@
-version: "2"
-services:
+version: "3.6"
 
+x-project-image:
+  &project-image
+  imagetrove/mytardis:latest
+
+services:
   redis:
     image: redis
 
@@ -8,26 +12,16 @@ services:
     image: rabbitmq:3-management
 
   mytardis:
-    image: imagetrove/mytardis:latest
-    volumes:
-    - ../store:/store
-    - ../logs:/home/webapp/logs
-    - ../static:/home/webapp/static
-    - ./settings.py:/home/webapp/code/tardis/settings.py
-    - ./monash_openid_login:/home/webapp/code/monash_openid_login
-    command: bash -c "source ~/appenv/bin/activate; gunicorn -c gunicorn_settings.py -b unix:/tmp/gnicorn.socket -b 0.0.0.0:8000 --log-syslog wsgi:application"
+    image: *project-image
+    command: bash -c "source ~/env/bin/activate; gunicorn -c gunicorn_settings.py -b unix:/tmp/gnicorn.socket -b 0.0.0.0:8000 --log-syslog wsgi:application"
 
   celery:
-    extends:
-      service: mytardis
-    command: bash -c 'sleep 20; source ~/appenv/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery worker -A tardis.celery.tardis_app -Q default -n default@%h'
+    image: *project-image
+    command: bash -c 'sleep 20; source ~/env/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery worker -A tardis.celery.tardis_app -Q default -n default@%h'
 
   beat:
-    extends:
-      service: mytardis
-    command: bash -c 'sleep 20; source ~/appenv/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery beat -A tardis.celery.tardis_app --loglevel DEBUG'
+    image: *project-image
+    command: bash -c 'sleep 20; source ~/env/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery beat -A tardis.celery.tardis_app --loglevel DEBUG'
 
   staging:
     image: imagetrove/staging:latest
-    volumes:
-      - ../store:/store
