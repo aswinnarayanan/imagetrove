@@ -30,7 +30,7 @@ RUN bash install-ubuntu-requirements.sh
 USER app
 RUN virtualenv --system-site-packages /home/app/env
 RUN bash -c "source ~/env/bin/activate; pip install --no-cache-dir -U pip"
-RUN bash -c "source ~/env/bin/activate; pip install --no-cache-dir python-ldap==3.1.0"
+RUN bash -c "source ~/env/bin/activate; pip install --no-cache-dir python-ldap==3.2.0"
 
 COPY --chown=app:app mytardis/requirements-base.txt ./
 RUN bash -c "source ~/env/bin/activate; pip install --no-cache-dir -r requirements-base.txt"
