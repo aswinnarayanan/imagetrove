@@ -3,12 +3,19 @@ import tardis.tardis_portal.models.parameters as tardis_parameters
 import tardis.tardis_portal.models.storage as tardis_storage
 import tardis.tardis_portal.tasks as tasks
 from tardis.tardis_portal.models.storage import StorageBox
+from tardis.tardis_portal.models.storage import StorageBoxOption
+from tardis.tardis_portal.models.storage import StorageBoxAttribute
 from tardis.tardis_portal.models.datafile import DataFileObject
 from tardis.tardis_portal.models.datafile import DataFile
 import os
 import re
 from tardis.celery import tardis_app
 from django.db import transaction
+import shutil
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def _get_default_storage_box(self):
     return StorageBox.get_default_storage()
@@ -16,11 +23,18 @@ DataFile.get_default_storage_box = _get_default_storage_box
 
 
 def copy_file(dfo, dest_box=None, verify=True):
-    uri = os.path.join(dfo.datafile.dataset.description, dfo.datafile.filename.strip())
+    if dest_box.name == 'store':
+        uri = os.path.join(dfo.datafile.dataset.description + '-' + str(dfo.datafile.dataset.id), dfo.datafile.filename.strip())
+    else:
+        uri = os.path.join(dfo.datafile.dataset.description, dfo.datafile.filename.strip())
+        if dfo.datafile.dataset.directory:
+            uri = os.path.join(dfo.datafile.dataset.directory, uri)
     if not dfo.verified:
         logger.debug('DFO (id: %d) could not be copied.'
                         ' Source not verified' % dfo.id)
         return False
+    print(dfo.storage_box.name + ':' + dfo.uri + ' -> ' + dest_box.name + ':' + uri)
+
     if dest_box is None:
         dest_box = StorageBox.get_default_storage()
     existing = dfo.datafile.file_objects.filter(storage_box=dest_box, uri=uri)
@@ -71,10 +85,8 @@ def safe_name(name):
 
 @tardis_app.task(name="move_to_uqrdm", ignore_result=True)
 def move_to_uqrdm():
-    rdm_schema = tardis_parameters.Schema.objects.filter(namespace='https://dev.imaging.org.au/schemas/experiment/uqrdm')[0]
+    rdm_schema = tardis_parameters.Schema.objects.filter(namespace='https://cai.imaging.org.au/schemas/experiment/uqrdm')[0]
     pn = tardis_parameters.ParameterName.objects.filter(name='UQRDM')[0]
-
-
     for ep in tardis_parameters.ExperimentParameter.objects.filter(name=pn):
         for df in ep.parameterset.experiment.get_datafiles().all():
             dfo = df.get_preferred_dfo()
@@ -85,17 +97,37 @@ def move_to_uqrdm():
                     dest_boxes = tardis_storage.StorageBox.objects.filter(name=rdmname)
                     if dest_boxes.count() == 0:
                         sb = StorageBox(name=rdmname,max_size=1000000000000,status='online')
-                        sb.save()
+                        sb.save() 
                         sbo = StorageBoxOption(storage_box=sb,key='location',value=os.path.join('/data',rdmname))
                         sbo.save()
                         sba = StorageBoxAttribute(storage_box=sb,key='can_delete',value=False)
                         sba.save()
                     dest_box = tardis_storage.StorageBox.objects.filter(name=rdmname)[0]
                     copy = move_file(dfo, dest_box)
+                    # break
 
 
-# if __name__ == "__main__":
-# move_to_uqrdm()
+def fix_file_locations():
+    rdm_schema = tardis_parameters.Schema.objects.filter(namespace='https://cai.imaging.org.au/schemas/experiment/uqrdm')[0]
+    pn = tardis_parameters.ParameterName.objects.filter(name='UQRDM')[0]
+
+
+    for ep in tardis_parameters.ExperimentParameter.objects.filter(name=pn):
+        for df in ep.parameterset.experiment.get_datafiles().all():
+            dfo = df.get_preferred_dfo()
+            rdmname=safe_name(ep.string_value)
+            rdmpath = os.path.join('/data',rdmname)
+            if dfo and dfo.verified and rdmname == 'store':
+                uri = os.path.join(dfo.datafile.dataset.description + '-' + str(dfo.datafile.dataset.id), dfo.datafile.filename.strip())
+                if dfo.uri != uri:
+                    oldfile = os.path.join('/store', dfo.uri)
+                    newfile = os.path.join('/store', uri)
+                    print(oldfile + ' -> ' + newfile)
+                    shutil.move(oldfile, newfile)
+                    dfo.uri = uri
+                    dfo.save()
+
+# fix_file_locations()
 
 
 
