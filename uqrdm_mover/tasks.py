@@ -33,7 +33,7 @@ def copy_file(dfo, dest_box=None, verify=True):
         logger.debug('DFO (id: %d) could not be copied.'
                         ' Source not verified' % dfo.id)
         return False
-    print(dfo.storage_box.name + ':' + dfo.uri + ' -> ' + dest_box.name + ':' + uri)
+    print(dfo.storage_box.name + ':' +  dfo.uri + ' -> ' + dest_box.name + ':' + uri)
 
     if dest_box is None:
         dest_box = StorageBox.get_default_storage()
@@ -82,17 +82,19 @@ def safe_name(name):
     return name
 
 
-
 @tardis_app.task(name="move_to_uqrdm", ignore_result=True)
 def move_to_uqrdm():
     rdm_schema = tardis_parameters.Schema.objects.filter(namespace='https://cai.imaging.org.au/schemas/experiment/uqrdm')[0]
     pn = tardis_parameters.ParameterName.objects.filter(name='UQRDM')[0]
     for ep in tardis_parameters.ExperimentParameter.objects.filter(name=pn):
+        rdmname=safe_name(ep.string_value)
         for df in ep.parameterset.experiment.get_datafiles().all():
             dfo = df.get_preferred_dfo()
-            rdmname=safe_name(ep.string_value)
-            rdmpath = os.path.join('/data',rdmname)
             if dfo and dfo.verified and dfo.storage_box.name != rdmname:
+                if rdmname == 'store':
+                    rdmpath = '/store'
+                else:
+                    rdmpath = os.path.join('/data',rdmname)
                 if os.path.ismount(rdmpath):
                     dest_boxes = tardis_storage.StorageBox.objects.filter(name=rdmname)
                     if dest_boxes.count() == 0:
@@ -104,7 +106,6 @@ def move_to_uqrdm():
                         sba.save()
                     dest_box = tardis_storage.StorageBox.objects.filter(name=rdmname)[0]
                     copy = move_file(dfo, dest_box)
-                    # break
 
 
 def fix_file_locations():
