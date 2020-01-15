@@ -1,0 +1,60 @@
+{% extends "tardis_portal/portal_template.html" %}
+{% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
+{% load experiment_tags %}
+{% load experimentstats %}
+{% load humanize %}
+{% load bleach_tag %}
+{% load capture %}
+
+{% block content %}
+<div id="content" class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <h2 class="d-block d-sm-none">Experiments</h2>
+      <div class="pull-right pb-1">
+        {% if perms.tardis_portal.add_experiment %}
+        <a class="btn btn-primary"
+           href="{% url 'tardis.tardis_portal.views.create_experiment' %}">
+          <i class="fa fa-plus"></i>
+          Create
+        </a>
+        {% endif %}
+      </div>  <!-- class="pull-right" -->
+      <div class="pull-left">
+        <h2 class="d-none d-sm-block" style="text-align: center">Experiments</h2>
+      </div>
+    </div>  <!-- class="col-md-12" -->
+  </div>  <!-- class="row" -->
+
+  <div class="row">
+    <div class="col-md-12">
+      {% if not shared_experiments %}
+      <p class="alert alert-info">
+        You do not have access to any shared experiments.
+      Add your own experiments or browse the public experiments.</p>
+      {% endif %}
+
+      {% if shared_experiments %}
+      <div class="pull-left">
+        <h3><strong>{{ shared_experiments.count }}</strong>
+        Shared Experiment{{ shared_experiments.count|pluralize }}</h3>
+      </div>
+      <div class="pull-right">
+        <button type="button" class="btn btn-success btn-sm"
+                onclick="$('#myshared .panel-collapse').collapse('hide');" >
+        Collapse all</button>
+        <button type="button" class="btn btn-success btn-sm"
+                onclick="$('#myshared .panel-collapse').collapse('show');" >
+        Expand all</button>
+      </div>
+      <div class="clearfix"></div>
+      <div id="myshared" class="mydata accordion experiments"></div>
+      {% endif %}
+    </div>  <!-- class="col-md-12" -->
+  </div>  <!-- class="row" -->
+</div>  <!-- id="content" -->
+
+<input type="hidden" id="exps-expand-accordion" value="{{ exps_expand_accordion }}">
+{% render_bundle 'tardis_portal_shared' %}
+{% endblock %}

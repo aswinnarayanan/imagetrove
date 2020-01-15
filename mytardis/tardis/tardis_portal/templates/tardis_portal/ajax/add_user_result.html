@@ -1,0 +1,23 @@
+<div class="access_list_user row" style="margin-top: 1ex; margin-bottom: 1ex">
+  <div class="col-md-5">
+    <strong>{{ user.first_name }} {{ user.last_name }} [{{ user.username }}]</strong>
+    {% if user.email %}<em>({{ user.email }})</em>{% endif %}
+  </div>
+  <div class="col-md-4">
+    {% if user_acl.canRead %}
+    <span class="badge badge-success">Read</span>
+    {% endif %}
+    {% if user_acl.canWrite %}
+    <span class="badge badge-success">Edit</span>
+    {% endif %}
+    {% if user_acl.isOwner %}
+    <span class="badge badge-info">Owner</span>
+    {% endif %}
+  </div>
+  <div class="col-md-3">
+    <a title="Remove Access" class="remove_user btn btn-danger btn-sm"
+      href="{% url 'tardis.tardis_portal.views.remove_experiment_access_user' experiment_id user.username %}">
+      Delete
+    </a>
+  </div>
+</div> <!-- access_list_user -->

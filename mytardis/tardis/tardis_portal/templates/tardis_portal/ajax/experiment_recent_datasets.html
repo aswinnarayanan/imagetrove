@@ -1,0 +1,33 @@
+{% for ds in exp.datasets.all|dictsortreversed:"id"|slice:":5" %}
+  {% if forloop.first %}
+    <ul class="list-group">
+    {% with total=exp.datasets.all|length %}
+      <li class="list-group-item dataset-list-header small pb-1">The most recent dataset{{total|pluralize}} in this experiment</li>
+    {% endwith %}
+  {% endif %}
+  <li class="list-group-item dataset-list-item">
+    <i class="fa fa-folder o-6"></i>
+    <a class="dataset-link"
+       href="{% url 'tardis_portal.view_dataset' ds.id %}">
+      {{ ds.description }}
+    </a>
+    {% for datafile in ds.get_images|slice:":5" %}
+      {% if forloop.first %}
+        <ul class="thumbnails list-inline">
+      {% endif %}
+      <li class="list-inline-item">
+        <a class="thumbnail" href="{% url 'tardis.tardis_portal.download.view_datafile' datafile.id %}">{% url 'tardis.tardis_portal.iiif.download_image' datafile_id=datafile.id region='full' size=',50' rotation=0 quality='native' format='jpg' as thumbnail %}
+        <img alt="Thumbnail for Datafile #{{datafile.id}}"
+             src="{{ thumbnail }}"
+             onerror="$(this).parent().parent().hide()"/></a>
+      </li>
+      {% if forloop.last %}
+        </ul>
+      {% endif %}
+    {% endfor %}
+  </li>
+  {% if forloop.last %}
+    </ul>
+  {% endif %}
+{% endfor %}
+

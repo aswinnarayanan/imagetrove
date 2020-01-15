@@ -1,0 +1,143 @@
+{% extends "tardis_portal/portal_template.html" %}
+{% load render_bundle from webpack_loader %}
+
+{% block content %}
+
+<input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+
+<p class="alert alert-info">
+  This page allows you to link accounts of different authentication method.
+</p>
+
+<div id="authList">
+
+{% for userAuth in userAuthMethodList %}
+<div class="authMethod" id="authMethod_{{ userAuth.2 }}"
+     data-auth-desc="{{ userAuth.1 }}">
+  <table class="table table-sm table-bordered">
+    <tr>
+      <th>Username:</th>
+      <td> {{ userAuth.0 }} &nbsp;
+      {% if userAuth.1 == 'Local DB' %}
+        <a class="edit_auth" id="{{ userAuth.2 }}" href="javascript:void(0);">
+          <i class="username-edit-icon fa fa-pencil"></i>
+          <i class="username-close-icon fa fa-minus" style="display:none"></i>
+        </a>
+      {% else %}
+        {% if isDjangoAccount %}
+          <a class="remove_auth" id="{{ userAuth.2 }}" href="javascript:void(0);">
+            <i class="fa fa-remove-circle"></i>
+          </a>
+        {% endif %}
+      {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th>Authentication Method:</th>
+      <td>{{ userAuth.1 }}</td>
+    </tr>
+  </table>
+</div> <!-- authMethod -->
+{% endfor %}
+
+</div> <!--  authList -->
+
+<div id="authForm">
+  {% if supportedAuthMethods|length > 0 %}
+
+    <form id="authForm" action="." method="post" class="form-horizontal">{% csrf_token %}
+      <fieldset>
+        <legend>Add a new account</legend>
+        {% for field in authForm %}
+          {{ field }}
+        {% endfor %}
+      </fieldset>
+      <div class="">
+        <button type="submit" id="link" class="btn btn-primary">
+          Link the Accounts
+        </button>
+      </div>
+    </form>
+
+  {% endif %}
+</div> <!-- authForm -->
+
+<div id="template-block" style="display: none">
+
+  <!-- alert-password-changed -->
+  <p class="alert-password-changed alert alert-success alert-dismissible">
+    <a class="close" data-dismiss="alert">&times;</a>
+    Password successfully changed
+  </p>
+
+  <p class="alert-error-msg alert alert-danger alert-dismissible">
+    <a class="close" data-dismiss="alert">&times;</a>
+    <span class="msg"></span>
+  </p>
+
+  <div class="form-change-password container">
+    <legend>Change Password</legend>
+    <form action="." method="post" class="form-horizontal">{% csrf_token %}
+      <div class="form-group row">
+        <label class="col-md-2 col-form-label" for="id_currentPassword">Current Password</label>
+        <div class="col-md-10">
+          <input id="id_currentPassword" class="form-control" type="password"
+                 name="currentPassword" autocomplete="current-password"
+                 style="max-width: 200px;"/>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-md-2 col-form-label" for="id_newPassword">New Password</label>
+        <div class="col-md-10">
+          <input id="id_newPassword" class="form-control" type="password"
+                 name="password" autocomplete="new-password"
+                 style="max-width: 200px;" />
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-md-2 col-form-label" for="id_newPassword1">Confirm Password</label>
+        <div class="col-md-10">
+          <input id="id_newPassword1" class="form-control" type="password"
+                 name="password1" autocomplete="new-password1"
+                 style="max-width: 200px;" />
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="offset-md-2 col-md-10">
+          <button type="submit" id="edit" class="btn btn-primary" style="max-width: 200px;">
+            <i class="fa fa-key"></i>
+            Change Password
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="authMethod">
+    <table class="table table-sm table-bordered">
+      <tr>
+        <th>Username:</th>
+        <td><span class="username"></span> &nbsp;
+        <a class="remove_auth" href="javascript:void(0);">
+          <i class="fa fa-remove-circle"></i>
+        </a>
+        </td>
+      </tr>
+      <tr>
+        <th>Authentication Method:</th>
+        <td><span class="auth-method"></span></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<script>
+var authMethodDict = [];
+{% for authKey, authDesc in allAuthMethods.items %}
+    authMethodDict["{{ authKey }}"] = "{{ authDesc }}";
+{% endfor %}
+</script>
+
+{% render_bundle 'tardis_portal_auth_methods' %}
+
+{% endblock content %}
