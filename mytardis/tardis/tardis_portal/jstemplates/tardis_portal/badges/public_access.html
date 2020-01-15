@@ -1,0 +1,12 @@
+<span class="label label-default {{^private}}label-success{{/private}}"
+      property="dc:rights"
+      content="{{ title }}"
+      title="{{ title }}">
+  {{#public}}
+  <i class="fa fa-eye"></i>
+  {{/public}}
+  {{^public}}
+  <i class="fa fa-eye-slash"></i>
+  {{/public}}
+  {{ label }}
+</span>

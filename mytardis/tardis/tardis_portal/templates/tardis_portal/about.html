@@ -1,0 +1,86 @@
+{% extends "tardis_portal/portal_template.html" %}
+{% load render_bundle from webpack_loader %}
+{% block content %}
+    <div class="page-header">
+        <h1 class="title">About {{ site_title|default:'MyTardis' }}</h1>
+    </div>
+    <div class="row">
+      <div class="col-md-10">
+        {% include custom_about_section %}
+      </div>
+    </div>
+    <div class="page-header">
+        <h1 class="title">Project Development</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-md-2">
+            <h2><i class="fa fa-question-sign fa-lg"></i> Help</h2>
+            <ul class="list-unstyled">
+                <li>
+                    <a href="http://mytardis.readthedocs.io/en/{{ version.tag|lower }}/userguide.html"
+                       target="_blank">User Guide</a>
+                </li>
+                <li>
+                    <a href="http://mytardis.readthedocs.org/en/{{ version.tag|lower }}/index.html"
+                       target="_blank">Documentation</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-md-5">
+            <h2><i class="fa fa-github fa-lg"></i>
+                Code / Documentation</h2>
+
+            <p>
+                The MyTardis project (including the Monash ANDS-funded EIF019
+                project and the Synchrotron/ANSTO MeCAT project)
+                is being actively developed and documented on
+                <a href="https://github.com/mytardis/mytardis/">GitHub</a>.
+        </div>
+        <div class="col-md-5">
+            <h2><i class="fa fa-comment fa-lg"></i> Discussion Group</h2>
+            <ul class="list-unstyled">
+                <li>
+                    Please contact us to get invited to our Slack Team
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fa fa-book fa-lg"></i> Citation</h2>
+
+            <p>
+                Please cite the following when referring to MyTardis:
+            </p>
+
+            <blockquote class="blockquote small">
+                Androulakis S, Schmidberger J, Bate MA, Degori R,
+                Beitz A, Keong C, Cameron B, McGowan S, Porter CJ,
+                Harrison A, Hunter J, Martin JL, Kobe B, Dobson RC, Parker
+                MW, Whisstock JC, Gray J, Treloar A, Groenewegen D,
+                Dickson N, Buckle AM. (2008) Federated repositories of
+                X-ray diffraction images. <em>Acta Crystallogr D Biol
+                Crystallogr.</em> Jul;64(Pt
+                7):810-4.
+                <a href="http://www.ncbi.nlm.nih.gov/pubmed/18566516?ordinalpos=1&itool=EntrezSystem2.PEntrez.Pubmed.Pubmed_ResultsPanel.Pubmed_RVDocSum">[PubMed]</a>
+            </blockquote>
+
+            <p>
+                For more information on the MyTardis project please
+                refer to the MyTardis.Org Contact page at
+                <a href="http://www.mytardis.org/contact/">http://www.mytardis.org/contact/</a>.
+            </p>
+        </div>
+        <div class="col-md-12">
+            <div class="pull-right">
+                This server is running <a
+                    href="https://github.com/mytardis/mytardis/tree/{{ version.commit_id }}">version
+                {{ version.tag }}</a> of MyTardis,
+                <br/>
+                released {{ version.date }}
+            </div>
+        </div>
+    </div>
+    <br/>
+{% endblock content %}

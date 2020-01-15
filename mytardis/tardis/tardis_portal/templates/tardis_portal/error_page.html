@@ -1,0 +1,14 @@
+{% extends "tardis_portal/portal_template.html" %}
+
+{% block content %}
+<h1 class="msg alert alert-danger" style="text-align: center; padding: 20px">
+  <span class="main" style="line-height: 100%">
+  {% block error_code %}
+  {% endblock %}</span>
+  <br/>
+  <small style="line-height: 100%">
+  {% block error_message %}
+  {% endblock %}</small>
+</h1>
+
+{% endblock %}
