@@ -1,4 +1,0 @@
-[submodule "mytardis"]
-	path = mytardis
-	url = https://github.com/aswinnarayanan/mytardis.git
-	branch = series-4.0
