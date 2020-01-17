@@ -1,9 +1,0 @@
-{% comment %}Adapted from django/contrib/admin/templates/admin/pagination.html{% endcomment %}
-{% load pagination %}
-{% if pagination_required %}
-  <ul class="pagination justify-content-center">
-    {% for page_index in page_range %}
-      {% paginator_number data_list paginator page_num query_string page_index %}
-    {% endfor %}
-  </ul>
-{% endif %}
