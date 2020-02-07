@@ -20,23 +20,23 @@ services:
     depends_on:
       - rabbit
       - redis
-    command: bash -c "source ~/env/bin/activate; gunicorn -c gunicorn_settings.py -b unix:/tmp/gnicorn.socket -b 0.0.0.0:8000 --log-syslog wsgi:application"
+    # command: bash -c "source ~/env/bin/activate; gunicorn -c gunicorn_settings.py -b unix:/tmp/gnicorn.socket -b 0.0.0.0:8000 --log-syslog wsgi:application"
+    command: bash -c "source ~/env/bin/activate; python manage.py runserver 0.0.0.0:8000"
 
-  celery:
-    image: *project-image
-    depends_on:
-      - rabbit
-    command: bash -c 'sleep 10; source ~/env/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery worker -A tardis.celery.tardis_app -Q default -n default@%h'
+#   celery:
+#     image: *project-image
+#     depends_on:
+#       - rabbit
+#     command: bash -c 'sleep 10; source ~/env/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery worker -A tardis.celery.tardis_app -Q default -n default@%h'
 
-  beat:
-    image: *project-image
-    depends_on:
-      - rabbit
-    command: bash -c 'sleep 10; source ~/env/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery beat -A tardis.celery.tardis_app --loglevel DEBUG'
+#   beat:
+#     image: *project-image
+#     depends_on:
+#       - rabbit
+#     command: bash -c 'sleep 10; source ~/env/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery beat -A tardis.celery.tardis_app --loglevel DEBUG'
 
-  staging:
-    image: imagetrove/staging:latest
-
+#   staging:
+#     image: imagetrove/staging:latest
 
 # source ~/env/bin/activate
 # python mytardis.py migrate --noinput
@@ -45,3 +45,9 @@ services:
 # python mytardis.py createsuperuser
 # python mytardis.py rebuild_index
 # python mytardis.py shell_plus
+
+# services:
+#   mytardis:
+#     image: *project-image
+#     command: bash -c "source ~/env/bin/activate; gunicorn -c gunicorn_settings.py -b unix:/tmp/gnicorn.socket -b 0.0.0.0:8000 --log-syslog wsgi:application"
+#     # command: bash -c "source ~/env/bin/activate; python manage.py runserver 0.0.0.0:8000"
