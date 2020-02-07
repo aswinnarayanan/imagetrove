@@ -3,6 +3,8 @@ FROM ubuntu:18.04
 # Installing basic dependancies
 ENV DEBIAN_FRONTEND noninteractive
 RUN echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90assumeyes
+ENV LANG C.UTF-8
+
 RUN apt-get update && apt-get install \
     -qy \
     -o APT::Install-Recommends=false \
@@ -20,14 +22,12 @@ RUN mkdir -p /home/app/build
 RUN chown -R app:app /home/app/build
 
 WORKDIR /home/app/build
-COPY --chown=app:app mytardis/install-ubuntu-py2-requirements.sh ./
-RUN bash install-ubuntu-py2-requirements.sh
+COPY --chown=app:app mytardis/install-ubuntu-py3-requirements.sh ./
+RUN bash install-ubuntu-py3-requirements.sh
 
-USER app
-RUN virtualenv --system-site-packages /home/app/env
-# RUN python3 -m venv /home/app/env
+USER app    
+RUN python3 -m venv /home/app/env
 RUN /home/app/env/bin/pip install --no-cache-dir -U pip wheel
-# RUN bash -c "source ~/env/bin/activate; pip install --no-cache-dir python-ldap==3.2.0"
 
 COPY --chown=app:app mytardis/requirements-base.txt ./
 RUN /home/app/env/bin/pip install --no-cache-dir -r requirements-base.txt
@@ -39,9 +39,8 @@ RUN mkdir -p ./tardis/apps/social_auth/
 COPY --chown=app:app mytardis/tardis/apps/social_auth/requirements.txt ./tardis/apps/social_auth/requirements.txt
 RUN /home/app/env/bin/pip install --no-cache-dir -r tardis/apps/social_auth/requirements.txt
 
-RUN /home/app/env/bin/pip install --no-cache-dir redis==2.10.6
+RUN /home/app/env/bin/pip install --no-cache-dir redis
 RUN /home/app/env/bin/pip install --no-cache-dir django-redis
-# RUN . /home/app/env/bin/activate; pip install --no-cache-dir celery_haystack"
 RUN /home/app/env/bin/pip install --no-cache-dir pydicom
 
 # Adding mytardis src
@@ -75,5 +74,3 @@ RUN npm audit fix
 RUN npm test
 
 RUN rm -rf /home/app/build
-
-# CMD bash -c "source ~/env/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; gunicorn -c gunicorn_settings.py -b unix:/tmp/gnicorn.socket -b 0.0.0.0:8000 --log-syslog wsgi:application"
