@@ -20,8 +20,8 @@ services:
     depends_on:
       - rabbit
       - redis
-    # command: bash -c "source ~/env/bin/activate; gunicorn -c gunicorn_settings.py -b unix:/tmp/gnicorn.socket -b 0.0.0.0:8000 --log-syslog wsgi:application"
-    command: bash -c "source ~/env/bin/activate; python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "/home/app/env/bin/gunicorn -c gunicorn_settings.py -b unix:/tmp/gnicorn.socket -b 0.0.0.0:8000 wsgi:application"
+    # command: bash -c "source ~/env/bin/activate; python manage.py runserver 0.0.0.0:8000"
 
 #   celery:
 #     image: *project-image
