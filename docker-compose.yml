@@ -27,13 +27,13 @@ services:
     image: *project-image
     depends_on:
       - rabbit
-    command: bash -c 'sleep 10; source ~/env/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery worker -A tardis.celery.tardis_app -Q default -n default@%h'
+    command: bash -c 'sleep 10; export DJANGO_SETTINGS_MODULE=tardis.settings; /home/app/env/bin/celery worker -A tardis.celery.tardis_app -c 2 -Q celery,default -n \"allqueues.%%h\"'
 
   beat:
     image: *project-image
     depends_on:
       - rabbit
-    command: bash -c 'sleep 10; source ~/env/bin/activate; export DJANGO_SETTINGS_MODULE=tardis.settings; celery beat -A tardis.celery.tardis_app --loglevel DEBUG'
+    command: bash -c 'sleep 10; export DJANGO_SETTINGS_MODULE=tardis.settings; /home/app/env/bin/celery beat -A tardis.celery.tardis_app --loglevel INFO'
 
   staging:
     image: imagetrove/staging:latest
