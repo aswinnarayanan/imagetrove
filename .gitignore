@@ -1,4 +1,5 @@
 .vscode
+scripts
 settings.py
 *.pub
 authorized_keys
@@ -7,3 +8,6 @@ store/*
 logs/*
 monash_openid_login/
 docker-compose.override.yml
+push-static.sh
+rdm-sync.sh
+uqrdm_mover.sh
