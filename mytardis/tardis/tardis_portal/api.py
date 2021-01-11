@@ -601,6 +601,12 @@ class ExperimentResource(MyTardisModelResource):
             }
         owners = exp.get_owners()
         bundle.data['owner_ids'] = [o.id for o in owners]
+        dataset_count = exp.datasets.all().count()
+        bundle.data['dataset_count'] = dataset_count
+        datafile_count = exp.get_datafiles().count()
+        bundle.data['datafile_count'] = datafile_count
+        experiment_size = exp.get_size()
+        bundle.data['experiment_size'] = experiment_size
         return bundle
 
     def hydrate_m2m(self, bundle):
@@ -694,6 +700,16 @@ class DatasetResource(MyTardisModelResource):
         ]
         always_return_data = True
 
+    def dehydrate(self, bundle):
+        dataset = bundle.obj
+        size = dataset.get_size()
+        bundle.data['dataset_size'] = size
+        dataset_experiment_count = dataset.experiments.count()
+        bundle.data['dataset_experiment_count'] = dataset_experiment_count
+        dataset_datafile_count = dataset.datafile_set.count()
+        bundle.data['dataset_datafile_count'] = dataset_datafile_count
+        return bundle
+
     def prepend_urls(self):
         return [
             url(r'^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/files/'
@@ -709,6 +725,10 @@ class DatasetResource(MyTardisModelResource):
                 (self._meta.resource_name, trailing_slash()),
                 self.wrap_view('get_child_dir_nodes'),
                 name='api_get_child_dir_nodes'),
+            url(r'^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/child-dir-files%s$' %
+                (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('get_child_dir_files'),
+                name='api_get_child_dir_files'),
         ]
 
     def get_datafiles(self, request, **kwargs):
@@ -752,6 +772,10 @@ class DatasetResource(MyTardisModelResource):
 
         dataset_id = kwargs['pk']
         dataset = Dataset.objects.get(id=dataset_id)
+        if not has_dataset_access(
+                request=request, dataset_id=dataset_id):
+            return HttpResponseForbidden()
+
         # get dirs at root level
         dir_tuples = dataset.get_dir_tuples("")
         # get files at root level
@@ -769,10 +793,11 @@ class DatasetResource(MyTardisModelResource):
                 child_list.append(child_dict)
                 # append files to list
         if dfs:
-            filenames = [df.filename for df in dfs]
-            for filename in filenames:
+            for df in dfs:
                 children = {}
-                children['name'] = filename
+                children['name'] = df.filename
+                children['verified'] = df.verified
+                children['id'] = df.id
                 child_list.append(children)
 
         return JsonResponse(child_list, status=200, safe=False)
@@ -784,12 +809,14 @@ class DatasetResource(MyTardisModelResource):
         self.is_authenticated(request)
 
         dataset_id = kwargs['pk']
-        tree_nodes_json = request.GET.get('data', '[]')
+        if not has_dataset_access(
+                request=request, dataset_id=dataset_id):
+            return HttpResponseForbidden()
+
         base_dir = request.GET.get('dir_path', None)
         dataset = Dataset.objects.get(id=dataset_id)
-        if not (tree_nodes_json and base_dir):
+        if not base_dir:
             return HttpResponse('Please specify base directory', status=400)
-        tree_nodes = json.loads(tree_nodes_json)
 
         # Previously this method checked the tree nodes data passed
         # in to determine whether children has already been loaded,
@@ -807,19 +834,42 @@ class DatasetResource(MyTardisModelResource):
 
         # if there are files append this
         if dfs:
-            filenames = [df.filename for df in dfs]
-            for file_name in filenames:
-                child = {'name': file_name}
+            for df in dfs:
+                child = {'name': df.filename, 'id': df.id, 'verified': df.verified}
                 child_list.append(child)
 
         return JsonResponse(child_list, status=200, safe=False)
+
+    def get_child_dir_files(self, request, **kwargs):
+        """
+        Return a list of datafile Ids within a child subdirectory
+        :param request: a HTTP Request instance
+        :type request: :class:`django.http.HttpRequest`
+        :param kwargs:
+        :return: a list of datafile IDs
+        :rtype: JsonResponse: :class: `django.http.JsonResponse`
+        """
+        self.method_check(request, allowed=['get'])
+        self.is_authenticated(request)
+        dataset_id = kwargs['pk']
+        if not has_dataset_access(
+                request=request, dataset_id=dataset_id):
+            return HttpResponseForbidden()
+
+        dir_path = request.GET.get('dir_path', None)
+        if not dir_path:
+            return HttpResponse('Please specify folder path')
+
+        df_list = DataFile.objects.filter(dataset__id=dataset_id, directory=dir_path) | \
+            DataFile.objects.filter(dataset__id=dataset_id, directory__startswith=dir_path+"/")
+        ids = [df.id for df in df_list]
+        return JsonResponse(ids, status=200, safe=False)
 
     def _populate_children(self, sub_child_dirs, dir_node, dataset):
         '''Populate the children list in a directory node
 
         Example dir_node: {'name': u'child_1', 'children': []}
         '''
-        child_dir_list = []
         for dir in sub_child_dirs:
             part1, part2 = dir
             # get files for this dir
@@ -896,6 +946,18 @@ class DataFileResource(MyTardisModelResource):
             template = URITemplate(download_uri_templates[storage_class_name])
             return redirect(template.expand(dfo_id=preferred_dfo.id))
 
+        # Log file download event
+        if getattr(settings, "ENABLE_EVENTLOG", False):
+            from tardis.apps.eventlog.utils import log
+            log(
+                action="DOWNLOAD_DATAFILE",
+                extra={
+                    "id": kwargs["pk"],
+                    "type": "api"
+                },
+                request=request
+            )
+
         file_object = file_record.get_file()
         wrapper = FileWrapper(file_object)
         tracker_data = dict(
@@ -963,6 +1025,7 @@ class DataFileResource(MyTardisModelResource):
                 bundle.data['replicas'] = [{'file_object': newfile}]
 
             del(bundle.data['attached_file'])
+
         return bundle
 
     def obj_create(self, bundle, **kwargs):
@@ -977,6 +1040,7 @@ class DataFileResource(MyTardisModelResource):
             if "duplicate key" in str(err):
                 raise ImmediateHttpResponse(HttpResponse(status=409))
             raise
+
         if 'replicas' not in bundle.data or not bundle.data['replicas']:
             # no replica specified: return upload path and create dfo for
             # new path
@@ -989,6 +1053,19 @@ class DataFileResource(MyTardisModelResource):
             dfo.create_set_uri()
             dfo.save()
             self.temp_url = dfo.get_full_path()
+        else:
+            # Log file upload event
+            if getattr(settings, "ENABLE_EVENTLOG", False):
+                from tardis.apps.eventlog.utils import log
+                log(
+                    action="UPLOAD_DATAFILE",
+                    extra={
+                        "id": bundle.obj.id,
+                        "type": "post"
+                    },
+                    request=bundle.request
+                )
+
         return retval
 
     def post_list(self, request, **kwargs):

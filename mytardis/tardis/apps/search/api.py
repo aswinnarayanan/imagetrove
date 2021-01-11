@@ -68,11 +68,27 @@ class SearchAppResource(Resource):
 
         return kwargs
 
+    def log_search_event(self, request, query_text, result_dict):
+        # Log search event
+        if getattr(settings, "ENABLE_EVENTLOG", False):
+            from tardis.apps.eventlog.utils import log
+            log(
+                action="SEARCH",
+                extra={
+                    "query": query_text,
+                    "experiments": len(result_dict["experiments"]),
+                    "datasets": len(result_dict["datasets"]),
+                    "datafiles": len(result_dict["datafiles"])
+                },
+                request=request
+            )
+
     def get_object_list(self, request):
         user = request.user
         query_text = request.GET.get('query', None)
         if not user.is_authenticated:
             result_dict = simple_search_public_data(query_text)
+            self.log_search_event(request, query_text, result_dict)
             return [SearchObject(id=1, hits=result_dict)]
         groups = user.groups.all()
         index_list = ['experiments', 'dataset', 'datafile']
@@ -100,27 +116,27 @@ class SearchAppResource(Resource):
                     .query('nested', path='experiments', query=query_dataset_oacl))
 
         query_datafile = Q("match", filename=query_text)
-        query_datafile_oacl = Q("term", **{'dataset.experiments.objectacls.entityId': user.id}) | \
-            Q("term", **{'dataset.experiments.public_access': 100})
+        query_datafile_oacl = Q("term", experiments__objectacls__entityId=user.id) | \
+            Q("term", experiments__public_access=100)
         for group in groups:
             query_datafile_oacl = query_datafile_oacl | \
-                                 Q("term", **{'dataset.experiments.objectacls.entityId': group.id})
+                                 Q("term", experiments__objectacls__entityId=group.id)
+        query_datafile = query_datafile & query_datafile_oacl
         ms = ms.add(Search(index='datafile')
-                    .extra(size=MAX_SEARCH_RESULTS, min_score=MIN_CUTOFF_SCORE).query(query_datafile)
-                    .query('nested', path='dataset.experiments', query=query_datafile_oacl))
+                    .extra(size=MAX_SEARCH_RESULTS, min_score=MIN_CUTOFF_SCORE).query(query_datafile))
         results = ms.execute()
         result_dict = {k: [] for k in ["experiments", "datasets", "datafiles"]}
         for item in results:
             for hit in item.hits.hits:
                 if hit["_index"] == "dataset":
-                    result_dict["datasets"].append(hit)
+                    result_dict["datasets"].append(hit.to_dict())
 
                 elif hit["_index"] == "experiments":
-                    result_dict["experiments"].append(hit)
+                    result_dict["experiments"].append(hit.to_dict())
 
                 elif hit["_index"] == "datafile":
-                    result_dict["datafiles"].append(hit)
-
+                    result_dict["datafiles"].append(hit.to_dict())
+        self.log_search_event(request, query_text, result_dict)
         return [SearchObject(id=1, hits=result_dict)]
 
     def obj_get_list(self, bundle, **kwargs):
@@ -143,21 +159,22 @@ def simple_search_public_data(query_text):
                 .extra(size=MAX_SEARCH_RESULTS, min_score=MIN_CUTOFF_SCORE).query(query_dataset)
                 .query('nested', path='experiments', query=query_dataset_oacl))
     query_datafile = Q("match", filename=query_text)
-    query_datafile_oacl = Q("term", **{'dataset.experiments.public_access': 100})
+    query_datafile_oacl = Q("term", experiments__public_access=100)
+    query_datafile = query_datafile & query_datafile_oacl
     ms = ms.add(Search(index='datafile')
-                .extra(size=MAX_SEARCH_RESULTS, min_score=MIN_CUTOFF_SCORE).query(query_datafile)
-                .query('nested', path='dataset.experiments', query=query_datafile_oacl))
+                .extra(size=MAX_SEARCH_RESULTS, min_score=MIN_CUTOFF_SCORE)
+                .query(query_datafile))
     results = ms.execute()
     for item in results:
         for hit in item.hits.hits:
             if hit["_index"] == "dataset":
-                result_dict["datasets"].append(hit)
+                result_dict["datasets"].append(hit.to_dict())
 
             elif hit["_index"] == "experiments":
-                result_dict["experiments"].append(hit)
+                result_dict["experiments"].append(hit.to_dict())
 
             elif hit["_index"] == "datafile":
-                result_dict["datafiles"].append(hit)
+                result_dict["datafiles"].append(hit.to_dict())
     return result_dict
 
 
@@ -259,30 +276,31 @@ class AdvanceSearchAppResource(Resource):
         if 'datafile' in index_list:
             query_datafile = Q("match", filename=query_text)
             if user.is_authenticated:
-                query_datafile_oacl = Q("term", **{'dataset.experiments.objectacls.entityId': user.id}) | \
-                                      Q("term", **{'dataset.experiments.public_access': 100})
+                query_datafile_oacl = Q("term", experiments__objectacls__entityId=user.id) | \
+                                      Q("term", experiments__public_access=100)
                 for group in groups:
                     query_datafile_oacl = query_datafile_oacl | \
-                                          Q("term", **{'dataset.experiments.objectacls.entityId': group.id})
+                                          Q("term", experiments__objectacls__entityId=group.id)
             else:
-                query_datafile_oacl = Q("term", **{'dataset.experiments.public_access': 100})
+                query_datafile_oacl = Q("term", experiments__public_access=100)
             if start_date is not None:
                 query_datafile = query_datafile & Q("range", created_time={'gte': start_date, 'lte': end_date})
+            query_datafile = query_datafile & query_datafile_oacl
             ms = ms.add(Search(index='datafile')
-                        .extra(size=MAX_SEARCH_RESULTS, min_score=MIN_CUTOFF_SCORE).query(query_datafile)
-                        .query('nested', path='dataset.experiments', query=query_datafile_oacl))
+                        .extra(size=MAX_SEARCH_RESULTS, min_score=MIN_CUTOFF_SCORE)
+                        .query(query_datafile))
         result = ms.execute()
         result_dict = {k: [] for k in ["experiments", "datasets", "datafiles"]}
         for item in result:
             for hit in item.hits.hits:
                 if hit["_index"] == "dataset":
-                    result_dict["datasets"].append(hit)
+                    result_dict["datasets"].append(hit.to_dict())
 
                 elif hit["_index"] == "experiments":
-                    result_dict["experiments"].append(hit)
+                    result_dict["experiments"].append(hit.to_dict())
 
                 elif hit["_index"] == "datafile":
-                    result_dict["datafiles"].append(hit)
+                    result_dict["datafiles"].append(hit.to_dict())
 
         if bundle.request.method == 'POST':
             bundle.obj = SearchObject(id=1, hits=result_dict)
